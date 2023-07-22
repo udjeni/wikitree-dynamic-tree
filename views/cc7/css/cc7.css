@@ -706,6 +706,44 @@ div.cc7Table #savePeople {
   font-size: 0.8em;
 }
 
+table tr.cc7filter-row input[type="text"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.1em;
+  border: 1px solid #aaa;
+  border-radius: 0.25em;
+  font-size: 1em;
+  line-height: 1.5em;
+  margin: 0;
+  background-color: #fff;
+  color: #000;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  -webkit-transition: border-color 0.2s ease-in-out;
+  -moz-transition: border-color 0.2s ease-in-out;
+  transition: border-color 0.2s ease-in-out;
+}
+#clearTableFiltersButton {
+  font-size: 0.8em;
+  padding: 7px 15px;
+  font-size: 0.9em;
+  text-align: center;
+  display: inline-block;
+}
+.cc7filter-row input.numeric-input {
+  width: 2em !important;
+  min-width: auto;
+}
+.cc7filter-row input.date-input {
+  width: 6em !important;
+  min-width: auto;
+}
+
+.cc7filter-row input.text-input {
+  width: 100%;
+}
+
 /* ---------------------------------------------------------
    Print styles
    ---------------------------------------------------------*/
