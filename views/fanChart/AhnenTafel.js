@@ -58,7 +58,7 @@ AhnenTafel.Ahnentafel = class Ahnentafel {
 
     // Stores the next person's WikiTree ID in position corresponding to their Ahnentafel number
     // THEN ... if they are a person in thePeopleList collection, check for THEIR parents, and recurse up the tree adding them!
-    addToAhnenTafel(nextPersonID, ahnNum) {
+    addToAhnenTafel(nextPersonID, ahnNum, doClimbTree = true, familyType = "") {
         this.list[ahnNum] = nextPersonID;
         if (this.listByPerson[nextPersonID] && this.listByPerson[nextPersonID].length > 0) {
             if (this.listByPerson[nextPersonID].indexOf(ahnNum) > -1) {
@@ -72,10 +72,26 @@ AhnenTafel.Ahnentafel = class Ahnentafel {
         }
 
         let nextPerson = thePeopleList[nextPersonID];
-        if (nextPerson && nextPerson._data.Father && nextPerson._data.Father > 0) {
+        if (
+            doClimbTree &&
+            familyType == "Bio" &&
+            nextPerson &&
+            nextPerson._data.BioFather &&
+            nextPerson._data.BioFather > 0
+        ) {
+            this.addToAhnenTafel(nextPerson._data.BioFather, 2 * ahnNum);
+        } else if (doClimbTree && nextPerson && nextPerson._data.Father && nextPerson._data.Father > 0) {
             this.addToAhnenTafel(nextPerson._data.Father, 2 * ahnNum);
         }
-        if (nextPerson && nextPerson._data.Mother && nextPerson._data.Mother > 0) {
+        if (
+            doClimbTree &&
+            familyType == "Bio" &&
+            nextPerson &&
+            nextPerson._data.BioMother &&
+            nextPerson._data.BioMother > 0
+        ) {
+            this.addToAhnenTafel(nextPerson._data.Mother, 2 * ahnNum + 1);
+        } else if (doClimbTree && nextPerson && nextPerson._data.Mother && nextPerson._data.Mother > 0) {
             this.addToAhnenTafel(nextPerson._data.Mother, 2 * ahnNum + 1);
         }
     }
