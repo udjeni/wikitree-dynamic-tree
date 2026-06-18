@@ -65,8 +65,8 @@ Only contains a subset of the complete set of data available.
 Expects the profile to contain the following fields from the API:
 Id,Name,IsLiving,Privacy,Manager,IsMember,
 BirthDate,DeathDate,BirthDateDecade,DeathDateDecade,
-BirthLocation,DeathLocation,
-FirstName,RealName,LastNameCurrent,LastNameAtBirth,Mother,Father,DataStatus,Bio
+BirthLocation,DeathLocation,Managers,
+FirstName,RealName,LastNameCurrent,LastNameAtBirth,DataStatus,Bio
 
 ### canUse
 
@@ -138,11 +138,18 @@ Is profile an orphan
 
 Returns **[Boolean][7]** true if profile is an orphan
 
+### getManagers
+
+Get managers for this profile as a String
+
+Returns **[String][8]** list of managers
+
 ### hasLocation
 
 Does profile have either birth or death location
 
 Returns **[Boolean][7]** true if either location present
+or the privacy does not let us determine location
 
 ### hasBirthLocation
 
@@ -156,30 +163,6 @@ Does profile have death location
 
 Returns **[Boolean][7]** true if death location
 
-### hasFather
-
-Does profile have father
-
-Returns **[Boolean][7]** true if profile has father
-
-### hasMother
-
-Does profile have mother
-
-Returns **[Boolean][7]** true if profile has mother
-
-### hasFatherStatus
-
-Does profile have father status
-
-Returns **[Boolean][7]** true if profile has father status
-
-### hasMotherStatus
-
-Does profile have mother status
-
-Returns **[Boolean][7]** true if profile has mother status
-
 ### getPrivacy
 
 Get the privacy
@@ -191,6 +174,18 @@ Returns **[Number][9]** numeric privacy level
 Get the privacy as a string to be displayed to the user
 
 Returns **[String][8]** privacy string (i.e., the color)
+
+### getResearchStatus
+
+Get the research status
+
+Returns **[Number][9]** numeric research status
+
+### getResearchStatusString
+
+Get the research status as a string to be displayed to the user
+
+Returns **[String][8]** research status string
 
 ### isUncheckedDueToPrivacy
 
@@ -240,6 +235,7 @@ Does the profile have a death date
 ### isUndated
 
 Does the profile lack dates
+Only looks at open and private profiles
 
 Returns **[Boolean][7]** true if profile has neither birth nor death date
 
@@ -754,6 +750,18 @@ assumes the leading {{ removed and line is lower case
 *   `line` **[String][8]** to test
 
 Returns **[Boolean][7]** true if nav box else false
+
+### isNotabilityTemplate
+
+Determine if line is a Notability template
+Do not want to look at all formatting templates, at present
+assumes the leading {{ removed and line is lower case
+
+#### Parameters
+
+*   `line` **[String][8]** to test
+
+Returns **[Boolean][7]** true if notability else false
 
 ### isSticker
 
