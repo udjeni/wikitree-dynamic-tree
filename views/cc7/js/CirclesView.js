@@ -419,16 +419,19 @@ export class CirclesView {
                         const thisCell = thisRow.cells[c + 1];
                         if (thisCell && thisCell.innerText) {
                             const thisEntry = thisRow.cells[c + 1].innerText;
-
-                            PDFs.thisPDFtextArray.push([
-                                thisEntry,
-                                125 + c * 40 + PDFs.thisPDFminX, //+ 140,
-                                5 + r * 20 + whereY,
-                                "helvetica",
-                                "normal",
-                                14,
-                                { align: "right", maxWidth: 40, fill: "black", strokeColor: "black" },
-                            ]);
+                            if (thisEntry.indexOf("True CC7 size ") > -1) {
+                                // do NOT add the message about "True CC7 size may not be accurate"
+                            } else {
+                                PDFs.thisPDFtextArray.push([
+                                    thisEntry,
+                                    125 + c * 40 + PDFs.thisPDFminX, //+ 140,
+                                    5 + r * 20 + whereY,
+                                    "helvetica",
+                                    "normal",
+                                    14,
+                                    { align: "right", maxWidth: 40, fill: "black", strokeColor: "black" },
+                                ]);
+                            }
                         }
                     }
                 }
@@ -715,11 +718,11 @@ export class CirclesView {
         });
     }
     static connectAllToPrimaryPerson(currentRootID) {
-        condLog("connectAllToPrimaryPerson", { currentRootID });
-        condLog("window.people.size", window.people.size);
-        condLog("window.people", window.people);
+        // console.log("connectAllToPrimaryPerson", { currentRootID });
+        // console.log("window.people.size", window.people.size);
+        // console.log("window.people", window.people);
         let rootPeep = window.people.get(1.0 * currentRootID);
-        condLog({ rootPeep });
+        // console.log({ rootPeep });
         if (rootPeep) {
             CirclesView.updateFieldsInPersonCodesObject(currentRootID, "A0", "A0-" + currentRootID);
             CirclesView.addConnectionsToThisPerson(currentRootID, "A0");
@@ -727,7 +730,7 @@ export class CirclesView {
     }
 
     static updateFieldsInPersonCodesObject(currentID, code, codeLong) {
-        condLog("updateFieldsInPersonCodesObject:", currentID, code, codeLong);
+        // console.log("updateFieldsInPersonCodesObject:", currentID, code, codeLong);
         let Peep = window.people.get(currentID);
         let currentIDstr = "" + currentID;
         if (Peep) {
@@ -810,6 +813,7 @@ export class CirclesView {
     }
 
     static addConnectionsToThisPerson(thisID, code, fromWhere = "root", p1 = 0, p2 = 0) {
+        // console.log("addConnectionsToThisPerson", { thisID }, { code }, { fromWhere }, { p1 }, { p2 });
         // thisID = WikiTree ID # for person who we are adding connections for
         // fromWhere = the type of connection that prompted this call to expand the network
         /*
@@ -1439,7 +1443,7 @@ export class CirclesView {
         let extraRadiusForCentralPerson = 0;
 
         condLog("BEFORE PLACEMENT: dotRadius = " + CirclesView.dotRadius, { radiusMultipler });
-
+        // console.log(CirclesView.theLeafCollection, Object.keys(CirclesView.theLeafCollection).length);
         let theCentralPersonObject = CirclesView.PersonCodesObject[CirclesView.theLeafCollection["A0"].Id];
         let showPhotoChkBox = document.getElementById("displayType_CentralPhoto");
         if (
