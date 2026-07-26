@@ -7795,7 +7795,7 @@ import { PDFs } from "../shared/PDFs.js";
 
     // Reposition all of the People Boxes (Leaves) for the Super Big Family Tree
     function repositionLeaves() {
-        console.log("Time to repositionLeaves of these peeps !");
+        condLog("Time to repositionLeaves of these peeps !");
         condLog(
             "At beginning of THIS function - primary peeps has ",
             thePeopleList[SuperBigFamView.theLeafCollection["A0"].Id]._data.Children.length,
@@ -10130,7 +10130,7 @@ import { PDFs } from "../shared/PDFs.js";
             SuperBigFamView.bioAhnentafel.update(person, "Bio");
             console.log("DO BIO AHNENTAFEL UPDATE HERE ??? (line 9655 in initialLoadDirectAncestors7) ");
             if (!person._data.BioFather && !person._data.BioMother) {
-                console.log(
+                condLog(
                     "No biological parents found for primary person after initial load of direct ancestors - HIDING the Family Selector Span"
                 );
                 document.getElementById("FamilyTypeSelectorSpan").style.display = "none";
@@ -10227,7 +10227,7 @@ import { PDFs } from "../shared/PDFs.js";
                 thePeopleList[SuperBigFamView.myAhnentafel.list[ahn]] &&
                 thePeopleList[SuperBigFamView.myAhnentafel.list[ahn]]._data.BioFather
             ) {
-                console.log(
+                condLog(
                     "Ahn # with Daddy issues: ",
                     ahn,
                     " is ",
@@ -10259,7 +10259,7 @@ import { PDFs } from "../shared/PDFs.js";
                 thePeopleList[SuperBigFamView.myAhnentafel.list[ahn]] &&
                 thePeopleList[SuperBigFamView.myAhnentafel.list[ahn]]._data.BioMother
             ) {
-                console.log(
+                condLog(
                     "Ahn # with Mommy issues: ",
                     ahn,
                     " is ",
@@ -10283,12 +10283,12 @@ import { PDFs } from "../shared/PDFs.js";
                     };
                     SuperBigFamView.bioAhnentafelsObject[index] = newBioObject;
                 } else {
-                    console.log("NO INFO on BioFather with ID ", bioParentID, " for Ahn # ", ahn);
+                    condLog("NO INFO on BioFather with ID ", bioParentID, " for Ahn # ", ahn);
                 }
             }
         }
 
-        console.log("SuperBigFamView.bioAhnentafelsObject:", SuperBigFamView.bioAhnentafelsObject);
+        condLog("SuperBigFamView.bioAhnentafelsObject:", SuperBigFamView.bioAhnentafelsObject);
     }
 
     function setupComboALevels() {
@@ -10420,7 +10420,7 @@ import { PDFs } from "../shared/PDFs.js";
                         continue;
                     }
 
-                    console.log(thePeopleList[bioObj.bioAhnentafel.list[nextAncAhnNum]]._data);
+                    condLog(thePeopleList[bioObj.bioAhnentafel.list[nextAncAhnNum]]._data);
                     if (
                         bioObj.bioAhnentafel.list[nextAncAhnNum] &&
                         thePeopleList[bioObj.bioAhnentafel.list[nextAncAhnNum]] &&
@@ -10474,8 +10474,8 @@ import { PDFs } from "../shared/PDFs.js";
 
         SuperBigFamView.comboALevels = comboALevels;
         SuperBigFamView.comboALevelsCodes = comboALevelsCodes.sort();
-        console.log("comboALevels:", SuperBigFamView.comboALevels);
-        console.log("comboALevelsCodes:", SuperBigFamView.comboALevelsCodes);
+        condLog("comboALevels:", SuperBigFamView.comboALevels);
+        condLog("comboALevelsCodes:", SuperBigFamView.comboALevelsCodes);
     }
 
     function initialLoad1000(self, id, person, startingNum) {
@@ -10681,7 +10681,7 @@ import { PDFs } from "../shared/PDFs.js";
             });
 
             let parentFieldNames = ["Name", "Id", "Mother", "Father", "BioMother", "BioFather"];
-            console.log("checkForNullParents:", APP_ID, listOfNullParentsIDs, parentFieldNames);
+            condLog("checkForNullParents:", APP_ID, listOfNullParentsIDs, parentFieldNames);
             WikiTreeAPI.getPeople(
                 // (appId, IDs, fields, options = {})
                 APP_ID,
@@ -10709,7 +10709,7 @@ import { PDFs } from "../shared/PDFs.js";
                     }
                 }
 
-                console.log("SUBSEQUENTLY fixed ", numPeeps, " NULL peeps");
+                condLog("SUBSEQUENTLY fixed ", numPeeps, " NULL peeps");
 
                 finishInitialLoad(self, id, person);
             });
@@ -10744,22 +10744,22 @@ import { PDFs } from "../shared/PDFs.js";
             const chunkCode = listOfChunks[chNum];
             const theChunk = SuperBigFamView.theChunkCollection[chunkCode];
             if (theChunk) {
-                console.log("Chunk # ", chNum, " code ", listOfChunks[chNum], theChunk.Chunk, theChunk.CodesList);
+                condLog("Chunk # ", chNum, " code ", listOfChunks[chNum], theChunk.Chunk, theChunk.CodesList);
 
                 for (let codeIndex = 0; codeIndex < theChunk.CodesList.length; codeIndex++) {
                     let code = theChunk.CodesList[codeIndex];
                     if (SuperBigFamView.theLeafCollection[code]) {
                         listOfLeafIds.push(SuperBigFamView.theLeafCollection[code].Id);
                     } else {
-                        console.log("No leaf found for code ", code, " in chunk ", chunkCode);
+                        condLog("No leaf found for code ", code, " in chunk ", chunkCode);
                     }
                 }
             } else {
-                console.log("No chunk found for code ", chunkCode);
+                condLog("No chunk found for code ", chunkCode);
             }
         }
 
-        console.log({ listOfLeafIds });
+        condLog({ listOfLeafIds });
 
         let listOfUndefinedLeaves = [];
         listOfLeafIds.map(function (leaf) {
@@ -10769,14 +10769,14 @@ import { PDFs } from "../shared/PDFs.js";
                 }
             }
         });
-        console.log({ listOfUndefinedLeaves });
+        condLog({ listOfUndefinedLeaves });
 
         if (listOfUndefinedLeaves.length > 0) {
             flashWarningMessageBelowButtonBar(
                 "Please wait while Super Big Family Tree is loading .... checking for any leaves that are missing in thePeopleList and trying to fill in their info ..."
             );
 
-            console.log("checkForUndefinedLeaves:", APP_ID, listOfUndefinedLeaves, SuperBigFamView.fieldNamesArray);
+            condLog("checkForUndefinedLeaves:", APP_ID, listOfUndefinedLeaves, SuperBigFamView.fieldNamesArray);
             WikiTreeAPI.getPeople(
                 // (appId, IDs, fields, options = {})
                 APP_ID,
@@ -10806,7 +10806,7 @@ import { PDFs } from "../shared/PDFs.js";
                     // }
                 }
 
-                console.log("SUBSEQUENTLY fixed ", numUndefined, " Undefined peeps");
+                condLog("SUBSEQUENTLY fixed ", numUndefined, " Undefined peeps");
                 flashWarningMessageBelowButtonBar("");
                 // finishInitialLoad(self, id, person);
             });
@@ -10817,9 +10817,9 @@ import { PDFs } from "../shared/PDFs.js";
     };
 
     function finishInitialLoad(self, id, person) {
-        console.log("(finishInitialLoad:" + id + " ) pre niblingInLaw getPeople call ..");
-        console.log("ASSEMBLING 22554556 :", thePeopleList[22554556]);
-        console.log("FINISHinitialLoad: thePeopleWithNullParents:", SuperBigFamView.thePeopleWithNullParents);
+        condLog("(finishInitialLoad:" + id + " ) pre niblingInLaw getPeople call ..");
+        condLog("ASSEMBLING 22554556 :", thePeopleList[22554556]);
+        condLog("FINISHinitialLoad: thePeopleWithNullParents:", SuperBigFamView.thePeopleWithNullParents);
         for (let peepID in thePeopleList) {
             let thisPeep = thePeopleList[peepID];
             // condLog("need to draw out Children and Siblings for ", thisPeep._data.BirthNamePrivate);
@@ -10931,7 +10931,7 @@ import { PDFs } from "../shared/PDFs.js";
             if (SuperBigFamView.myAhnentafel.list[a] && SuperBigFamView.myAhnentafel.list[a] > 0) {
                 let GGidnum = SuperBigFamView.myAhnentafel.list[a];
                 let spObj = thePeopleList[GGidnum]._data;
-                console.log(
+                condLog(
                     "ASSEMBLING SIBLINGS for Primary grandparent with ID ",
                     GGidnum,
                     " and name ",
@@ -10944,7 +10944,7 @@ import { PDFs } from "../shared/PDFs.js";
                 if (SuperBigFamView.myAhnentafel.list[a] != SuperBigFamView.bioAhnentafel.list[a]) {
                     let GGidnum = SuperBigFamView.bioAhnentafel.list[a];
                     let spObj = thePeopleList[GGidnum]._data;
-                    console.log(
+                    condLog(
                         "ASSEMBLING SIBLINGS for Bio grandparent with ID ",
                         GGidnum,
                         " and name ",
@@ -11035,7 +11035,7 @@ import { PDFs } from "../shared/PDFs.js";
 
     // ASSEMBLE the SIBLINGS object for one of the A direct ancestor objects (or A0 = Primary Person themself !)
     function assembleSiblingsFor(IDsArray) {
-        console.log("ASSEMBLING SIBLINGS FOR:", IDsArray);
+        condLog("ASSEMBLING SIBLINGS FOR:", IDsArray);
         for (let nl = 0; nl < IDsArray.length; nl++) {
             const newID = IDsArray[nl];
 
@@ -11389,7 +11389,7 @@ import { PDFs } from "../shared/PDFs.js";
             doNotAddKids = true;
         }
         if (newLeaf.Code == "A0") {
-            console.log(
+            condLog(
                 "FOR the leaf",
                 newLeaf.Code,
                 " it is a ",
@@ -11397,7 +11397,7 @@ import { PDFs } from "../shared/PDFs.js";
                 "that came from a ",
                 currentCodeTypePrev
             );
-            console.log(
+            condLog(
                 "DO NOT permissions for Rent, Partner, Siblings, Kids : ",
                 doNotAddRents,
                 doNotAddPartners,
@@ -11487,7 +11487,7 @@ import { PDFs } from "../shared/PDFs.js";
         let thisPeep = thePeopleList[newLeaf.Id];
 
         if (newLeaf.Code == "A0BFRF") {
-            console.log("Germaine thisPeep:", thisPeep);
+            condLog("Germaine thisPeep:", thisPeep);
         }
 
         if (!thisPeep) {
