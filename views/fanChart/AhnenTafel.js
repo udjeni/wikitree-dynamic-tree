@@ -30,7 +30,7 @@ AhnenTafel.Ahnentafel = class Ahnentafel {
     // then makes that Person the Primary ID, Ahnentafel # 1, then
     // climbs through their ancestors to fill out the rest of the Ahnentafel
     update(newPerson, familyType = "") {
-        // condLog("Update the Ahnentafel object", newPerson);
+        console.log("Update the Ahnentafel object", newPerson, familyType);
 
         if (newPerson && newPerson._data.Id) {
             this.primaryPerson = newPerson;
@@ -41,24 +41,61 @@ AhnenTafel.Ahnentafel = class Ahnentafel {
             this.listByPerson = new Array(); // initialize the Array
             this.listByPerson[this.primaryPerson._data.Id] = 1; // add the primary person to the list
 
-            if (familyType == "Bio" && this.primaryPerson._data.BioFather && this.primaryPerson._data.BioFather > 0) {
-                this.addToAhnenTafel(this.primaryPerson._data.BioFather, 2);
-            } else if (this.primaryPerson._data.Father && this.primaryPerson._data.Father > 0) {
-                this.addToAhnenTafel(this.primaryPerson._data.Father, 2);
-            }
-            if (familyType == "Bio" && this.primaryPerson._data.BioMother && this.primaryPerson._data.BioMother > 0) {
-                this.addToAhnenTafel(this.primaryPerson._data.BioMother, 3);
-            } else if (this.primaryPerson._data.Mother && this.primaryPerson._data.Mother > 0) {
-                this.addToAhnenTafel(this.primaryPerson._data.Mother, 3);
+            let startedCombo = false;
+            if (
+                familyType == "Combo" &&
+                ((this.primaryPerson._data.BioFather && this.primaryPerson._data.BioFather > 0) ||
+                    (this.primaryPerson._data.BioMother && this.primaryPerson._data.BioMother > 0))
+            ) {
+                this.list[2] = 2;
+                this.list[3] = 3;
+                this.listByPerson[2] = [2];
+                this.listByPerson[3] = [3];
+                startedCombo = true;
             }
 
-            this.listAll(); // sends message to the condLog for validation - this could be commented out and not hurt anything
+            if (familyType == "Combo" && startedCombo == true) {
+                if (this.primaryPerson._data.BioFather && this.primaryPerson._data.BioFather > 0) {
+                    this.addToAhnenTafel(this.primaryPerson._data.BioFather, 4);
+                }
+                if (this.primaryPerson._data.Father && this.primaryPerson._data.Father > 0) {
+                    this.addToAhnenTafel(this.primaryPerson._data.Father, 5);
+                }
+                if (this.primaryPerson._data.Mother && this.primaryPerson._data.Mother > 0) {
+                    this.addToAhnenTafel(this.primaryPerson._data.Mother, 6);
+                }
+                if (this.primaryPerson._data.BioMother && this.primaryPerson._data.BioMother > 0) {
+                    this.addToAhnenTafel(this.primaryPerson._data.BioMother, 7);
+                }
+            } else {
+                if (
+                    familyType == "Bio" &&
+                    this.primaryPerson._data.BioFather &&
+                    this.primaryPerson._data.BioFather > 0
+                ) {
+                    this.addToAhnenTafel(this.primaryPerson._data.BioFather, 2);
+                } else if (this.primaryPerson._data.Father && this.primaryPerson._data.Father > 0) {
+                    this.addToAhnenTafel(this.primaryPerson._data.Father, 2);
+                }
+
+                if (
+                    familyType == "Bio" &&
+                    this.primaryPerson._data.BioMother &&
+                    this.primaryPerson._data.BioMother > 0
+                ) {
+                    this.addToAhnenTafel(this.primaryPerson._data.BioMother, 3);
+                } else if (this.primaryPerson._data.Mother && this.primaryPerson._data.Mother > 0) {
+                    this.addToAhnenTafel(this.primaryPerson._data.Mother, 3);
+                }
+
+                this.listAll(); // sends message to the condLog for validation - this could be commented out and not hurt anything
+            }
         }
     }
 
     // Stores the next person's WikiTree ID in position corresponding to their Ahnentafel number
     // THEN ... if they are a person in thePeopleList collection, check for THEIR parents, and recurse up the tree adding them!
-    addToAhnenTafel(nextPersonID, ahnNum) {
+    addToAhnenTafel(nextPersonID, ahnNum, doClimbTree = true, familyType = "") {
         this.list[ahnNum] = nextPersonID;
         if (this.listByPerson[nextPersonID] && this.listByPerson[nextPersonID].length > 0) {
             if (this.listByPerson[nextPersonID].indexOf(ahnNum) > -1) {
@@ -72,10 +109,26 @@ AhnenTafel.Ahnentafel = class Ahnentafel {
         }
 
         let nextPerson = thePeopleList[nextPersonID];
-        if (nextPerson && nextPerson._data.Father && nextPerson._data.Father > 0) {
+        if (
+            doClimbTree &&
+            familyType == "Bio" &&
+            nextPerson &&
+            nextPerson._data.BioFather &&
+            nextPerson._data.BioFather > 0
+        ) {
+            this.addToAhnenTafel(nextPerson._data.BioFather, 2 * ahnNum);
+        } else if (doClimbTree && nextPerson && nextPerson._data.Father && nextPerson._data.Father > 0) {
             this.addToAhnenTafel(nextPerson._data.Father, 2 * ahnNum);
         }
-        if (nextPerson && nextPerson._data.Mother && nextPerson._data.Mother > 0) {
+        if (
+            doClimbTree &&
+            familyType == "Bio" &&
+            nextPerson &&
+            nextPerson._data.BioMother &&
+            nextPerson._data.BioMother > 0
+        ) {
+            this.addToAhnenTafel(nextPerson._data.Mother, 2 * ahnNum + 1);
+        } else if (doClimbTree && nextPerson && nextPerson._data.Mother && nextPerson._data.Mother > 0) {
             this.addToAhnenTafel(nextPerson._data.Mother, 2 * ahnNum + 1);
         }
     }
