@@ -664,7 +664,7 @@ export class CirclesView {
 
         let showGenPDFpopupFunctionCode = `if (document.getElementById("PDFgenPopupDIV").style.display == "none") {
                 document.getElementById("PDFgenPopupDIV").style.display = "block";
-                console.log("showGenPDFpopupFunctionCode");
+                condLog("showGenPDFpopupFunctionCode");
                 CC7View.setupPDFgenerator();            
             }`;
 
@@ -718,9 +718,9 @@ export class CirclesView {
         });
     }
     static connectAllToPrimaryPerson(currentRootID) {
-        console.log("connectAllToPrimaryPerson", { currentRootID });
-        console.log("window.people.size", window.people.size);
-        console.log("window.people", window.people);
+        condLog("connectAllToPrimaryPerson", { currentRootID });
+        condLog("window.people.size", window.people.size);
+        condLog("window.people", window.people);
         let rootPeep = window.people.get(1.0 * currentRootID);
         if (!rootPeep) {
             if (window.rootPerson.Id == window.rootId && window.rootId == currentRootID) {
@@ -734,7 +734,7 @@ export class CirclesView {
             }
             // rootPeep = window.people.get("" + currentRootID);
         }
-        console.log({ rootPeep });
+        condLog({ rootPeep });
         if (rootPeep) {
             CirclesView.updateFieldsInPersonCodesObject(currentRootID, "A0", "A0-" + currentRootID);
             CirclesView.addConnectionsToThisPerson(currentRootID, "A0");
@@ -994,10 +994,10 @@ export class CirclesView {
     }
 
     static updateView() {
-        console.log("CIRCLES VIEW - updateView");
+        condLog("CIRCLES VIEW - updateView");
         // sort the people by degree
         // TODO also sort by birthdate
-        console.log("window.rootId:", window.rootId);
+        condLog("window.rootId:", window.rootId);
         CirclesView.connectAllToPrimaryPerson(window.rootId);
         const mapArray = Array.from(window.people);
         mapArray.sort((a, b) => a[1]["Meta"]["Degrees"] - b[1]["Meta"]["Degrees"]);
@@ -1089,9 +1089,9 @@ export class CirclesView {
         ];
 
         // const blobColoursD1 = ["gray", "lawngreen", "red", "blue"];
-        console.log("BOO !!");
+        condLog("BOO !!");
         const privacy = person.Privacy;
-        console.log("CirclesView.doCircle - person:", person);
+        condLog("CirclesView.doCircle - person:", person);
         const degree = person.Meta.Degrees;
         const first = person.RealName;
         const last = person.LastNameAtBirth;
@@ -1391,12 +1391,12 @@ export class CirclesView {
     }
 
     static changeDisplayType() {
-        console.log("CIRCLES VIEW - changeDisplayType");
+        condLog("CIRCLES VIEW - changeDisplayType");
         let SVGcode =
             "<svg id=CirclesBkgd><rect id=CirclesBkgdRect width=5000 height=5000 style='fill:aliceblue;stroke:aliceblue;stroke-width:1;opacity:1' /></svg>";
         let degreeCount = CirclesView.degreeCount;
         // let displayType = "dot";
-        console.log({ degreeCount });
+        condLog({ degreeCount });
         let circleTypeVariables = {
             dot: { dotRadius: 9 },
             ltr: { dotRadius: 9 },
@@ -1411,7 +1411,7 @@ export class CirclesView {
         CirclesView.circlesGrayAncs = document.getElementById("displayType_GrayAncs").checked;
         CC7.updateURL();
 
-        console.log("filled:", CirclesView.circleFilled);
+        condLog("filled:", CirclesView.circleFilled);
 
         let numAtThisDegree = [0, 0, 0, 0, 0, 0, 0, 0, 0];
         let fNameMultiplierFactor = CirclesView.displayType == "fName" ? 2 : 1;
@@ -1422,7 +1422,7 @@ export class CirclesView {
         // }
         for (let d = 1; d < 8; d++) {
             if (degreeCount[d] == 0) {
-                console.log("At CC" + d + " there are " + degreeCount[d] + " people - NO POLYGON");
+                condLog("At CC" + d + " there are " + degreeCount[d] + " people - NO POLYGON");
             } else {
                 // FORMULA for the Radius of a Regular n-sided Polygon with sidelength s (from centre of polygon to a vertex)
                 //      Radius = s / (2 * sin(180º / n))
@@ -1455,8 +1455,8 @@ export class CirclesView {
         let centralPersonDotDY = 0;
         let extraRadiusForCentralPerson = 0;
 
-        console.log("BEFORE PLACEMENT: dotRadius = " + CirclesView.dotRadius, { radiusMultipler });
-        console.log(CirclesView.theLeafCollection, Object.keys(CirclesView.theLeafCollection).length);
+        condLog("BEFORE PLACEMENT: dotRadius = " + CirclesView.dotRadius, { radiusMultipler });
+        condLog(CirclesView.theLeafCollection, Object.keys(CirclesView.theLeafCollection).length);
         let theCentralPersonObject = CirclesView.PersonCodesObject[CirclesView.theLeafCollection["A0"].Id];
         let showPhotoChkBox = document.getElementById("displayType_CentralPhoto");
         if (
@@ -1488,7 +1488,7 @@ export class CirclesView {
             SVGcode += CirclesView.doCircle(rootPerson, 0, 0, centralPersonDotDY); // degree = 0, x = 0, y = centralPersonDotDY (0 or a bit down underneath photo)
         }
 
-        console.log({ extraRadiusForCentralPerson });
+        condLog({ extraRadiusForCentralPerson });
 
         for (let person of CirclesView.currentSortedMap.values()) {
             const degree = person.Meta.Degrees;
@@ -1720,6 +1720,8 @@ export class CirclesView {
                 window.personPopup.popupHTML(person, {
                     type: "CC",
                     person: { _data: CirclesView.PersonCodesObject[person.Id] },
+                    personID: person.Id,
+                    personName: person.Name,
                     leafCollection: CirclesView.theLeafCollection,
                     peopleList: CirclesView.PersonCodesObject,
                     appID: "cc7",
@@ -1727,9 +1729,9 @@ export class CirclesView {
                     extra: { degree: numDegreesForPopup },
                 });
 
-                console.log(CirclesView.PersonCodesObject);
-                console.log(CirclesView.theLeafCollection["A0"]);
-                console.log(CirclesView.PersonCodesObject[CirclesView.theLeafCollection["A0"].Id]);
+                condLog(CirclesView.PersonCodesObject);
+                condLog(CirclesView.theLeafCollection["A0"]);
+                condLog(CirclesView.PersonCodesObject[CirclesView.theLeafCollection["A0"].Id]);
             });
         });
     }
