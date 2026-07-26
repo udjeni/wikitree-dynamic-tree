@@ -5597,8 +5597,8 @@ import { Utils } from "../shared/Utils.js";
             }
         }
 
-        console.log({ newOrder });
-        console.log({ nodes });
+        condLog({ newOrder });
+        condLog({ nodes });
         for (let index = 0; index < nodes.length; index++) {
             const element = nodes[index];
             if (element.ahnNum == 1) {
