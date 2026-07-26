@@ -274,12 +274,12 @@ import { Utils } from "../shared/Utils.js";
 
     var popupDIV =
         '<div id=popupDIV style="display:none; position:absolute; left:20px; background-color:#EFEFEF; border: solid darkgrey 4px; border-radius: 15px; padding: 15px;}">' +
-        '<span style="color:red; align:left"><A onclick="SuperBigFamView.removePopup();">' +
+        '<span style="color:red; align:left"><A onclick="WebsView.removePopup();">' +
         SVGbtnCLOSE +
         "</A></span></div>";
     var connectionPodDIV =
         '<div id=connectionPodDIV style="display:none; width:fit-content; position:absolute; left:50px; top:225px; background-color:#EFEFEF; border: solid darkgrey 4px; border-radius: 15px; padding: 15px;}">' +
-        '<span style="color:red; align:left"><A onclick="SuperBigFamView.removePodDIV();">' +
+        '<span style="color:red; align:left"><A onclick="WebsView.removePodDIV();">' +
         SVGbtnCLOSE +
         "</A></span></div>";
 
@@ -320,7 +320,7 @@ import { Utils } from "../shared/Utils.js";
     WebsView.numGens2Display = 5;
     WebsView.lastNumGens = 5;
     WebsView.numGensRetrieved = 5;
-    WebsView.maxNumGens = 14;
+    WebsView.maxNumGens = 16;
     WebsView.maxNumPrimes = 3; // maximum # of Primary Persons - i.e. - limit on # of people to add to compare Common Ancestors with each other
     WebsView.workingMaxNumGens = 4;
 
@@ -341,6 +341,9 @@ import { Utils } from "../shared/Utils.js";
 
     /** Array to hold the list of all the Ahnentafel tables of all the Prime Persons  */
     WebsView.listOfAhnentafels = [];
+    WebsView.listOfA1Ahnentafels = [];
+    WebsView.listOfBioAhnentafels = [];
+    WebsView.listOfComboAhnentafels = [];
 
     /** Array to hold the list of all COMMON Ancestors  */
     WebsView.listOfCommonAncestors = [];
@@ -754,6 +757,12 @@ import { Utils } from "../shared/Utils.js";
             ` <A id=menuBarOptionRepeats  title="Display REPEAT Ancestor Web - only repeated ancestors displayed and their connections to Primary"  style="cursor:pointer;" onclick="WebsView.viewMode='Repeats'; WebsView.redraw();">REPEAT</A> | ` +
             ` <A id=menuBarOptionIndi  title="Display SINGLE Ancestor Multi-Path Web to Primary"  style="cursor:pointer;" onclick="WebsView.viewMode='Indi'; WebsView.redraw();">SINGLE</A>  ` +
             //  ' <A onclick="WebsView.maxAngle = 180; WebsView.redraw();"><img height=20px src="https://apps.wikitree.com/apps/clarke11007/pix/fan180.png" /></A></td>' +
+            // FamilyType selector
+            "<span id=FamilyTypeSelectorSpan>&nbsp;&nbsp;&nbsp;&nbsp; Family:<SELECT id=FamilyTypeSelector class=optionSelect onchange='WebsView.changeFamilyType(this.value);'>" +
+            "<option value=A1 >Primary/Adoptive</option>" +
+            "<option value=Bio>Biological</option>" +
+            "<option value=Combo>Combo</option>" +
+            "</SELECT></span>" +
             "</td>" +
             '<td width="5%">&nbsp;</td>' +
             '<td width="30%" align="center">' +
@@ -900,8 +909,8 @@ import { Utils } from "../shared/Utils.js";
                 }
                 // condLog(
                 //     makeFitZoomFactor,
-                //     SuperBigFamView.currentScaleFactor,
-                //     SuperBigFamView.lastCustomScaleFactor,
+                //     WebsView.currentScaleFactor,
+                //     WebsView.lastCustomScaleFactor,
                 //     0.8 * makeFitZoomFactor,
 
                 // );
@@ -1810,6 +1819,13 @@ import { Utils } from "../shared/Utils.js";
                             "points",
                             theXmultiplier * X + "," + Y + " " + theXmultiplier * Xpa + "," + Ypa
                         );
+
+                        if (WebsView.familyType == "Combo" && (index == 2 || index == 3)) {
+                            elementPa.setAttribute("points", "0,0" + " " + theXmultiplier * Xpa + "," + Ypa);
+                        }
+                        if (WebsView.familyType == "Combo" && index == 3) {
+                            elementPa.style.setProperty("stroke", "HotPink");
+                        }
                     }
                     // console.log( elementPa.getAttribute("id"), elementPa.getAttribute("points"));
 
@@ -1955,6 +1971,12 @@ import { Utils } from "../shared/Utils.js";
                             "points",
                             theXmultiplier * X + "," + Y + " " + theXmultiplier * Xma + "," + Yma
                         );
+                        if (WebsView.familyType == "Combo" && (index == 2 || index == 3)) {
+                            elementMa.setAttribute("points", "0,0" + " " + theXmultiplier * Xma + "," + Yma);
+                        }
+                        if (WebsView.familyType == "Combo" && index == 2) {
+                            elementMa.style.setProperty("stroke", "LightSkyBlue");
+                        }
                     }
                     if ((useSteps == true || useSteps4Ma == true) && elementMa.getAttribute("display") == "block") {
                         let theLineClr = "White";
@@ -2315,6 +2337,8 @@ import { Utils } from "../shared/Utils.js";
                     "DeathLocation",
                     "Mother",
                     "Father",
+                    "BioMother",
+                    "BioFather",
                     "Children",
                     "Parents",
                     "Spouses",
@@ -2359,6 +2383,43 @@ import { Utils } from "../shared/Utils.js";
             });
         }
     }
+
+    WebsView.changeFamilyType = function (newType) {
+        WebsView.familyType = newType;
+        console.log("CHANGE THE FAMILY TYPE HERE!", newType);
+        let newPersonNum = 0;
+        //  if (rootPersonSelector) {
+        //      newPersonNum = rootPersonSelector.value;
+        //  }
+        //  if (forcePrime > -1) {
+        //      newPersonNum = forcePrime;
+        //  }
+        condLog("CHANGE THE PRIME PERSON HERE!", newPersonNum);
+        WebsView.currentPrimeNum = newPersonNum;
+
+        // for (let index = 0; index < WebsView.theAncestors.length; index++) {
+        //     thePeopleList.add(WebsView.theAncestors[index]);
+        // }
+
+        let thisNewID = WebsView.listOfPrimePersons[newPersonNum];
+        let thePerson = thePeopleList[thisNewID];
+        WebsView.primePerson = thePerson;
+
+        // WebsView.listOfRepeatAncestors = WebsView.listOfAhnentafels[newPersonNum].listOfRepeatAncestors(
+        //     WebsView.numGens2Display
+        // );
+        // WebsView.repeatAncestorNum = Math.max(WebsView.repeatAncestorNum, WebsView.listOfRepeatAncestors.length - 1);
+
+        if (newType == "A1") {
+            WebsView.myAhnentafel.update(thePerson);
+        } else if (newType == "Bio") {
+            WebsView.myAhnentafel.update(thePerson, "Bio");
+        } else if (newType == "Combo") {
+            WebsView.myAhnentafel.update(thePerson, "Combo");
+        }
+        // WebsView.myAncestorTree.draw();
+        WebsView.redraw();
+    };
 
     WebsView.changePrimePerson = function (forcePrime = -1) {
         let rootPersonSelector = document.getElementById("rootPersonSelector");
@@ -2645,6 +2706,12 @@ import { Utils } from "../shared/Utils.js";
             condLog("REALLY NEED TO CHANGE THE MY AHNENTAFEL !!!");
             WebsView.myAhnentafel = WebsView.listOfAhnentafels[WebsView.currentPrimeNum];
         }
+        if (WebsView.familyType == "Bio") {
+            WebsView.myAhnentafel.update(WebsView.primePerson, "Bio");
+        } else if (WebsView.familyType == "Combo") {
+            WebsView.myAhnentafel.update(WebsView.primePerson, "Combo");
+        }
+
         let rootPersonSelector =
             "<select id=rootPersonSelector  style='cursor:pointer;' onchange='WebsView.changePrimePerson();' class=selectSimpleDropDown id=rootPersonSelector>";
         for (let pp = 0; pp < WebsView.listOfPrimePersons.length; pp++) {
@@ -2873,6 +2940,8 @@ import { Utils } from "../shared/Utils.js";
                     "DeathLocation",
                     "Mother",
                     "Father",
+                    "BioMother",
+                    "BioFather",
                     "Children",
                     "Parents",
                     "Spouses",
@@ -5528,7 +5597,8 @@ import { Utils } from "../shared/Utils.js";
             }
         }
 
-        condLog(nodes);
+        console.log({ newOrder });
+        console.log({ nodes });
         for (let index = 0; index < nodes.length; index++) {
             const element = nodes[index];
             if (element.ahnNum == 1) {
@@ -6030,6 +6100,8 @@ import { Utils } from "../shared/Utils.js";
                     "DeathLocation",
                     "Mother",
                     "Father",
+                    "BioMother",
+                    "BioFather",
                     "Children",
                     "Parents",
                     "Spouses",
@@ -6166,6 +6238,17 @@ import { Utils } from "../shared/Utils.js";
                         for (let index = 0; index < WebsView.listOfPrimePersons.length; index++) {
                             WebsView.listOfAhnentafels[index].update(
                                 WebsView.PeopleList[WebsView.listOfPrimePersons[index]]
+                            );
+                            WebsView.listOfA1Ahnentafels[index].update(
+                                WebsView.PeopleList[WebsView.listOfPrimePersons[index]]
+                            );
+                            WebsView.listOfBioAhnentafels[index].update(
+                                WebsView.PeopleList[WebsView.listOfPrimePersons[index]],
+                                "Bio"
+                            );
+                            WebsView.listOfComboAhnentafels[index].update(
+                                WebsView.PeopleList[WebsView.listOfPrimePersons[index]],
+                                "Combo"
                             );
                         }
                         condLog("LIST of AHNENTAFELS:");
