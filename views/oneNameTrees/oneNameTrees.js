@@ -1517,7 +1517,7 @@ window.OneNameTrees = class OneNameTrees extends View {
                 cachedProfile.LastNameCurrent || this.combinedResults[cachedProfile.Id].LastNameCurrent;
             this.combinedResults[cachedProfile.Id].LastNameOther =
                 cachedProfile.LastNameOther || this.combinedResults[cachedProfile.Id].LastNameOther;
-                appliedUpdates += 1;
+            appliedUpdates += 1;
         });
 
         if (limitedCandidates.length === 0) {
@@ -2199,41 +2199,6 @@ window.OneNameTrees = class OneNameTrees extends View {
 
         return;
     }
-
-    /*
-    prioritizeTargetName(sortedPeople) {
-        let updatedPeople = [...sortedPeople]; // Clone the array to avoid direct modifications
-
-        for (let i = 0; i < updatedPeople.length; i++) {
-            let person = updatedPeople[i];
-
-            if (person.Spouses && person.Spouses.length > 0) {
-                const spouseIds = person.Spouses.map((spouse) => spouse.Id);
-
-                spouseIds.forEach((spouseId) => {
-                    // Find the spouse in sortedPeople by comparing Id values after type conversion
-                    let spouseIndex = sortedPeople.findIndex((p) => String(p.Id) === String(spouseId));
-
-                    if (spouseIndex !== -1) {
-                        let spouse = sortedPeople[spouseIndex];
-
-                        if (this.shouldPrioritize(spouse, person)) {
-                            spouse.shouldBeRoot = false;
-                            // Remove the spouse from their original position in the updated list
-                            updatedPeople = updatedPeople.filter((p) => String(p.Id) !== String(spouse.Id));
-                            // Recalculate person's index in the updated list
-                            let newPersonIndex = updatedPeople.findIndex((p) => String(p.Id) === String(person.Id));
-                            // Insert the spouse after the person in the updated list
-                            updatedPeople.splice(newPersonIndex + 1, 0, spouse);
-                        }
-                    }
-                });
-            }
-        }
-
-        this.sortedPeople = updatedPeople; // Update the original array reference if needed
-    }
-    */
 
     prioritizeTargetName(sortedPeople) {
         let updatedPeople = [...sortedPeople]; // Clone the array to avoid direct modifications
