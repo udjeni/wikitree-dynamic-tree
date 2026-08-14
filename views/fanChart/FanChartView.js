@@ -1985,6 +1985,9 @@ import { PDFs } from "../shared/PDFs.js";
                 thisElement = null;
                 if (thisPhotoDIV) {
                     thisElement = thisPhotoDIV.children[0];
+                    if (thisElement == null) {
+                        thisElement = thisPhotoDIV;
+                    }
                 }
                 // thisElement = document.getElementById(thisID);
                 if (
@@ -2003,6 +2006,7 @@ import { PDFs } from "../shared/PDFs.js";
                         ahnNum: index,
                     });
 
+                    // console.log("IF - Adding image to ", thisElement.src, " PDF with base string:", thisBaseString);
                     PDFs.thisPDFimageArray.push([
                         thisBaseString,
                         // "/apps/clarke11007/images/icons/female.gif",
@@ -2027,6 +2031,12 @@ import { PDFs } from "../shared/PDFs.js";
                         ahnNum: index,
                     });
 
+                    // console.log(
+                    //     "ELSE IF - Adding image to ",
+                    //     thisElement.src,
+                    //     " PDF with base string:",
+                    //     thisBaseString
+                    // );
                     PDFs.thisPDFimageArray.push([
                         thisBaseString, //thisElement.src,
                         "PNG",
@@ -2040,6 +2050,8 @@ import { PDFs } from "../shared/PDFs.js";
                     ]);
                     thisY += (thisElement.height + 20) * thisYdy;
                     thisX += (thisElement.height + 20) * thisYdx;
+                } else {
+                    console.log("NOT Adding image for ", thisElement);
                 }
 
                 let thisHereFontSize = PDFs.currentPDFsettings.thisFontSize; // temporary holding variable for font size when we need to squish in names or places in tight wedges

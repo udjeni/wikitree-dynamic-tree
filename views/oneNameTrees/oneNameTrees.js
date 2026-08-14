@@ -54,6 +54,7 @@ window.OneNameTrees = class OneNameTrees extends View {
         this.watchlistIds = [];
         this.watchlist = JSON.parse(localStorage.getItem(`${this.userId}_watchlist`)) || null;
         this.watchlistPromise = null;
+        this.relatedProfileNameFieldCache = new Map();
         this.centuries = this.parseCenturies($("#centuries").val());
         this.header = null;
         this.displayedIndividuals = new Set();
@@ -1431,6 +1432,152 @@ window.OneNameTrees = class OneNameTrees extends View {
             .filter((name) => name);
     }
 
+    profileHasTargetSurname(person, standardizedSurnameVariants) {
+        const standardizedLastNameAtBirth = this.standardizeString(person?.LastNameAtBirth);
+        const standardizedLastNameCurrent = this.standardizeString(person?.LastNameCurrent);
+        const standardizedLastNameOthers = this.getStandardizedOtherLastNames(person?.LastNameOther);
+
+        return standardizedSurnameVariants.some(
+            (variant) =>
+                variant === standardizedLastNameAtBirth ||
+                variant === standardizedLastNameCurrent ||
+                standardizedLastNameOthers.includes(variant)
+        );
+    }
+
+    hasDirectTargetRelative(person, standardizedSurnameVariants) {
+        const father = person?.Father ? this.combinedResults[person.Father] : null;
+        const mother = person?.Mother ? this.combinedResults[person.Mother] : null;
+
+        if (father && this.profileHasTargetSurname(father, standardizedSurnameVariants)) {
+            return true;
+        }
+        if (mother && this.profileHasTargetSurname(mother, standardizedSurnameVariants)) {
+            return true;
+        }
+
+        if (Array.isArray(person?.Spouses)) {
+            const hasTargetSpouse = person.Spouses.some((spouse) => {
+                const spouseProfile = spouse?.Id ? this.combinedResults[spouse.Id] : null;
+                return spouseProfile && this.profileHasTargetSurname(spouseProfile, standardizedSurnameVariants);
+            });
+            if (hasTargetSpouse) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    async enrichNameFieldsForRelatedWtPlusMatches(standardizedSurnameVariants) {
+        if (!this.wtPlusMatches?.size) {
+            return;
+        }
+
+        const candidates = Object.values(this.combinedResults).filter((person) => {
+            if (!person?.Id || !person?.Name) {
+                return false;
+            }
+            if (!this.wtPlusMatches.has(String(person.Id))) {
+                return false;
+            }
+            if (this.profileHasTargetSurname(person, standardizedSurnameVariants)) {
+                return false;
+            }
+            if (person?.LastNameOther) {
+                return false;
+            }
+            return this.hasDirectTargetRelative(person, standardizedSurnameVariants);
+        });
+
+        if (candidates.length === 0) {
+            return;
+        }
+
+        const uncachedCandidates = candidates.filter((person) => !this.relatedProfileNameFieldCache.has(person.Name));
+        const limitedCandidates = uncachedCandidates;
+        const cacheHits = candidates.length - uncachedCandidates.length;
+        let fetchedProfiles = 0;
+        let fetchFailures = 0;
+        let appliedUpdates = 0;
+
+        wtViewRegistry.showNotice(
+            `Checking related profiles for missing surname fields... candidates: ${candidates.length}, fetches needed: ${limitedCandidates.length}, cache hits: ${cacheHits}`
+        );
+
+        // Reuse already-resolved profiles to avoid repeated getProfile calls in the same run.
+        candidates.forEach((person) => {
+            const cachedProfile = this.relatedProfileNameFieldCache.get(person.Name);
+            if (!cachedProfile || !cachedProfile.Id || !this.combinedResults[cachedProfile.Id]) {
+                return;
+            }
+            this.combinedResults[cachedProfile.Id].LastNameAtBirth =
+                cachedProfile.LastNameAtBirth || this.combinedResults[cachedProfile.Id].LastNameAtBirth;
+            this.combinedResults[cachedProfile.Id].LastNameCurrent =
+                cachedProfile.LastNameCurrent || this.combinedResults[cachedProfile.Id].LastNameCurrent;
+            this.combinedResults[cachedProfile.Id].LastNameOther =
+                cachedProfile.LastNameOther || this.combinedResults[cachedProfile.Id].LastNameOther;
+                appliedUpdates += 1;
+        });
+
+        if (limitedCandidates.length === 0) {
+            wtViewRegistry.showNotice(
+                `Related profile enrichment complete. candidates: ${candidates.length}, fetched: 0, cache hits: ${cacheHits}, updates applied: ${appliedUpdates}`
+            );
+            return;
+        }
+
+        const chunkSize = 25;
+        for (let i = 0; i < limitedCandidates.length; i += chunkSize) {
+            if (!this.isActive() || this.cancelling) {
+                return;
+            }
+
+            const chunk = limitedCandidates.slice(i, i + chunkSize);
+            const chunkResults = await Promise.all(
+                chunk.map(async (person) => {
+                    try {
+                        const result = await WikiTreeAPI.postToAPI({
+                            appId: OneNameTrees.APP_ID,
+                            action: "getProfile",
+                            key: person.Name,
+                            fields: "Id,LastNameAtBirth,LastNameCurrent,LastNameOther",
+                        });
+                        const profile = result?.[0]?.profile || null;
+                        if (profile) {
+                            fetchedProfiles += 1;
+                        } else {
+                            fetchFailures += 1;
+                        }
+                        this.relatedProfileNameFieldCache.set(person.Name, profile);
+                        return profile;
+                    } catch (error) {
+                        fetchFailures += 1;
+                        this.relatedProfileNameFieldCache.set(person.Name, null);
+                        return null;
+                    }
+                })
+            );
+
+            chunkResults.forEach((profile) => {
+                if (!profile?.Id || !this.combinedResults[profile.Id]) {
+                    return;
+                }
+                this.combinedResults[profile.Id].LastNameAtBirth =
+                    profile.LastNameAtBirth || this.combinedResults[profile.Id].LastNameAtBirth;
+                this.combinedResults[profile.Id].LastNameCurrent =
+                    profile.LastNameCurrent || this.combinedResults[profile.Id].LastNameCurrent;
+                this.combinedResults[profile.Id].LastNameOther =
+                    profile.LastNameOther || this.combinedResults[profile.Id].LastNameOther;
+                appliedUpdates += 1;
+            });
+        }
+
+        wtViewRegistry.showNotice(
+            `Related profile enrichment complete. candidates: ${candidates.length}, fetched: ${fetchedProfiles}, cache hits: ${cacheHits}, failures: ${fetchFailures}, updates applied: ${appliedUpdates}`
+        );
+    }
+
     getAkaLastNamesDisplay(person) {
         const seen = new Set();
         const ownLastNames = new Set([
@@ -1451,31 +1598,6 @@ window.OneNameTrees = class OneNameTrees extends View {
                     seen.add(standardized);
                     names.push(name);
                 });
-        }
-
-        if (names.length === 0 && this.wtPlusMatches.has(String(person?.Id))) {
-            const standardizedVariants = this.getSurnameVariants().map((variant) => this.standardizeString(variant));
-            const hasTargetSurnameInData =
-                standardizedVariants.includes(this.standardizeString(person.LastNameAtBirth)) ||
-                standardizedVariants.includes(this.standardizeString(person.LastNameCurrent)) ||
-                this.getStandardizedOtherLastNames(person.LastNameOther).some((name) =>
-                    standardizedVariants.includes(name)
-                );
-
-            if (!hasTargetSurnameInData) {
-                const enteredNames = ($("#surname").val() || "")
-                    .split(",")
-                    .map((name) => name.trim())
-                    .filter((name) => name);
-                enteredNames.forEach((name) => {
-                    const standardized = this.standardizeString(name);
-                    if (seen.has(standardized) || ownLastNames.has(standardized)) {
-                        return;
-                    }
-                    seen.add(standardized);
-                    names.push(name);
-                });
-            }
         }
 
         if (names.length === 0) {
@@ -1935,22 +2057,11 @@ window.OneNameTrees = class OneNameTrees extends View {
         const centuries = this.parseCenturies($("#centuries").val());
         const firstCentury = centuries.length > 0 ? Math.min(...centuries) : null;
         const locationInput = $("#location").val()?.trim();
+        const standardizedSurnameVariants = surnameVariants.map((variant) => this.standardizeString(variant));
 
         const $this = this;
         Object.values(this.combinedResults).forEach((person) => {
-            // Standardize the person's surnames for comparison
-            const standardizedLastNameAtBirth = $this.standardizeString(person?.LastNameAtBirth) || "";
-            const standardizedLastNameCurrent = $this.standardizeString(person?.LastNameCurrent) || "";
-            const standardizedLastNameOthers = $this.getStandardizedOtherLastNames(person?.LastNameOther);
-            const isWtPlusMatch = this.wtPlusMatches.has(String(person.Id));
-
-            // Check if any standardized surname variants include the standardized person's surnames
-            const isSurnameMatch = surnameVariants.some(
-                (variant) =>
-                    $this.standardizeString(variant) === standardizedLastNameAtBirth ||
-                    $this.standardizeString(variant) === standardizedLastNameCurrent ||
-                    standardizedLastNameOthers.includes($this.standardizeString(variant))
-            );
+            const isSurnameMatch = this.profileHasTargetSurname(person, standardizedSurnameVariants);
 
             // Determine the person's birth century for filtering
             const birthYear = parseInt(person?.BirthDate?.substring(0, 4));
@@ -1964,7 +2075,7 @@ window.OneNameTrees = class OneNameTrees extends View {
                 person.BirthDate == "0000-00-00";
             const isLocationMatch = this.isLocationMatch(person, locationInput);
 
-            if ((isSurnameMatch || isWtPlusMatch) && isCenturyMatch && isLocationMatch) {
+            if (isSurnameMatch && isCenturyMatch && isLocationMatch) {
                 $this.filteredResults[person.Id] = person;
             }
         });
@@ -2043,6 +2154,9 @@ window.OneNameTrees = class OneNameTrees extends View {
             // If no variants are found, use the surname as-is
             surnameVariants.push(this.surname);
         }
+        const standardizedSurnameVariants = surnameVariants.map((variant) => this.standardizeString(variant));
+
+        await this.enrichNameFieldsForRelatedWtPlusMatches(standardizedSurnameVariants);
         //
 
         if ($this.cancelling) {
