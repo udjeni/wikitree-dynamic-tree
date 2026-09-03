@@ -722,18 +722,37 @@ export class AncestorLinesExplorer {
 
         const gen = $("#generation").val();
         const maxNrPeople = 2 ** gen - 2;
-        const nrAncestorProfiles = AncestorTree.profileCount - 1;
-        const nrDuplicates = AncestorTree.nrDuplicatesUpToGen(gen);
-        $("#aleFieldset .report").remove();
-        $("#aleFieldset").append(
-            `<span class="report">Out of ${maxNrPeople} possible direct ancestors in ${gen} generations, ${nrAncestorProfiles} (${(
-                (nrAncestorProfiles / maxNrPeople) *
-                100
-            ).toFixed(2)}%) have WikiTree profiles and out of them, ${nrDuplicates} (${(
-                (nrDuplicates / nrAncestorProfiles) *
-                100
-            ).toFixed(2)}%) occur more than once due to pedigree collapse.</span>`
+        const nrUniqueProfiles = AncestorTree.uniqueProfileCount - 1;
+        const nrProfiledPositions = AncestorTree.profiledPositionCount - 1;
+        const [nrDuplicates, nrPosOccupiedByDupes] = AncestorTree.nrDuplicatesUpToGen(gen);
+        const nrProfiled = nrUniqueProfiles - nrDuplicates + nrPosOccupiedByDupes;
+        console.log(
+            `maxNrPeople: ${maxNrPeople}, nrUniqueProfiles: ${nrUniqueProfiles}, nrDuplicates: ${nrDuplicates}, nrPosOccupiedByDupes: ${nrPosOccupiedByDupes}, nrProfiledPositions: ${nrProfiledPositions} nrProfiled: ${nrProfiled}`
         );
+
+        const commonReport = `Out of ${maxNrPeople.toLocaleString()} possible direct ancestors in ${gen} generations, ${nrProfiledPositions.toLocaleString()} (${(
+            (nrProfiledPositions / maxNrPeople) *
+            100
+        ).toFixed(2)}%) ${nrProfiledPositions > 1 ? "have WikiTree profiles" : "has a WikiTree profile"}`;
+        const duplicateReport =
+            nrDuplicates == 0
+                ? ", with no pedigree collapse."
+                : `. Due to pedigree collapse, these ${nrProfiledPositions} positions with profiles are filled by ${nrUniqueProfiles.toLocaleString()} (${(
+                      (nrUniqueProfiles / nrProfiledPositions) *
+                      100
+                  ).toFixed(2)}%) individual${nrUniqueProfiles > 1 ? "s" : ""}, ${nrDuplicates.toLocaleString()} (${(
+                      (nrDuplicates / nrUniqueProfiles) *
+                      100
+                  ).toFixed(2)}%) of whom ${nrDuplicates > 1 ? "occur" : "occurs"} more than once in the tree. ${
+                      nrDuplicates > 1 ? `These ${nrDuplicates} occupy` : `This profile occupies`
+                  } ${nrPosOccupiedByDupes.toLocaleString()} (${((nrPosOccupiedByDupes / maxNrPeople) * 100).toFixed(
+                      2
+                  )}%) of the positions in the tree (${((nrPosOccupiedByDupes / nrProfiledPositions) * 100).toFixed(
+                      2
+                  )}% of the positions with profiles).`;
+
+        $("#aleFieldset .report").remove();
+        $("#aleFieldset").append(`<span class="report">${commonReport}${duplicateReport}</span>`);
 
         const counts = AncestorTree.markAndCountBricks({
             noParents: document.getElementById("noParents").checked,
