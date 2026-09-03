@@ -658,30 +658,6 @@ export class AncestorLinesExplorer {
         $("#maxLevel")
             .empty()
             .append(...AncestorLinesExplorer.generateLevelOptions(0, maxLevel, selected));
-        // console.log(
-        //     "BEFORE:",
-        //     "requested maxLevel =",
-        //     maxLevel,
-        //     "requested selected =",
-        //     selected,
-        //     "actual value =",
-        //     select.value
-        // );
-
-        // const options = Array.from(
-        //     { length: maxLevel + 1 },
-        //     (_, i) => new Option(i === 0 ? "All" : String(i), String(i), i === selected, i === selected)
-        // );
-
-        // console.log(
-        //     "AFTER:",
-        //     "value =",
-        //     select.value,
-        //     "selectedIndex =",
-        //     select.selectedIndex,
-        //     "options =",
-        //     select.options.length
-        // );
     }
 
     static setGetPeopleButtonText(n) {
