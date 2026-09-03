@@ -4,6 +4,8 @@ import { Utils } from "../shared/Utils.js";
 import { spell } from "../../lib/utilities.js";
 
 export class AncestorLinesExplorer {
+    static MAX_GENERATIONS = 25;
+    static DEFAULT_MAX_GENERATIONS = 5;
     static #COOKIE_NAME = "wt_ale_options";
     static #helpText = `
         <xx>[ x ]</xx>
@@ -17,7 +19,7 @@ export class AncestorLinesExplorer {
             <em><b>Warning</b>: A "full" (or complete) ancesstor tree of 15 generations or higher (e.g. for Windsor-1)
             WILL take a long time to retrieve and an even longer time to draw (a 15 generation tree can contain 32768 people).
             It may even crash your browser.
-            It is possible, however, to retrieve 20 generations of trees that are relatively sparse in the older
+            It is possible, however, to retrieve ${AncestorLinesExplorer.MAX_GENERATIONS} generations of trees that are relatively sparse in the older
             generations.</em> The more generations are requested in a load, the longer it may take, so please be patient.
             Once loaded, you can save the data locally to your device and re-load it much faster later.
         </p>
@@ -137,21 +139,6 @@ export class AncestorLinesExplorer {
                   <option value="3">3</option>
                   <option value="4">4</option>
                   <option value="5" selected>5</option>
-                  <option value="6">6</option>
-                  <option value="7">7</option>
-                  <option value="8">8</option>
-                  <option value="9">9</option>
-                  <option value="10">10</option>
-                  <option value="11">11</option>
-                  <option value="12">12</option>
-                  <option value="13">13</option>
-                  <option value="14">14</option>
-                  <option value="15">15</option>
-                  <option value="16">16</option>
-                  <option value="17">17</option>
-                  <option value="18">18</option>
-                  <option value="19">19</option>
-                  <option value="20">20</option>
                 </select>
                 <button id="getAncestorsButton" class="btn btn-primary btn-sm" title="Get ancestor data up to this generation from WikiTree">
                   Get 11 Generations and Draw Tree</button
@@ -418,7 +405,16 @@ export class AncestorLinesExplorer {
             </div>
         </div>`);
 
-        AncestorLinesExplorer.updateMaxLevelSelection(20, 5);
+        $("#generation")
+            .empty()
+            .append(
+                ...AncestorLinesExplorer.generateLevelOptions(
+                    2,
+                    AncestorLinesExplorer.MAX_GENERATIONS,
+                    AncestorLinesExplorer.DEFAULT_MAX_GENERATIONS
+                )
+            );
+
         AncestorLinesExplorer.retrieveOptionsFromCookie();
         AncestorLinesExplorer.applyParameters(params);
 
@@ -427,9 +423,11 @@ export class AncestorLinesExplorer {
         $("#generation")
             .off("change")
             .on("change", function () {
-                const maxGen = $("#generation").val();
+                const maxGen = Number(this.value);
+                const selected = Math.min(Number($("#maxLevel").val()), maxGen);
+
                 AncestorLinesExplorer.setGetPeopleButtonText(maxGen);
-                AncestorLinesExplorer.updateMaxLevelSelection(maxGen, $("#maxLevel").val());
+                AncestorLinesExplorer.updateMaxLevelSelection(maxGen, selected);
             });
         $("#generation").trigger("change");
 
@@ -541,11 +539,22 @@ export class AncestorLinesExplorer {
     }
 
     static applyParameters(params) {
-        const maxGen = Number(params["maxgen"] || 0);
-        if (maxGen) $("#generation").val(maxGen);
+        let maxGen = Number(params["maxgen"] || 0);
+        // console.log(`Found maxGen param: ${maxGen}`);
+        if (maxGen) {
+            maxGen = Math.min(maxGen, AncestorLinesExplorer.MAX_GENERATIONS);
+            $("#generation").val(maxGen);
+            // console.log(`#generation is now ${$("#generation").val()}`);
+        }
 
         const limitGen = Number(params["limitgen"] || maxGen);
-        if (limitGen) $("#maxLevel").val(limitGen);
+        // console.log(`New limitGen value: ${limitGen}`);
+        if (limitGen) {
+            // console.log(`Setting maxLevel to ${limitGen}`);
+            AncestorLinesExplorer.updateMaxLevelSelection(Math.max(maxGen, limitGen), limitGen);
+            $("#maxLevel").val(limitGen);
+            // console.log(`maxLevel is now ${$("#maxLevel").val()}`);
+        }
 
         if (params.hasOwnProperty("poi")) {
             $("#otherWtIds").val(params["poi"]);
@@ -631,12 +640,48 @@ export class AncestorLinesExplorer {
         }
     }
 
+    static generateLevelOptions(first, last, selected) {
+        const len = last - first + 1;
+        return Array.from(
+            { length: len },
+            (_, i) =>
+                new Option(
+                    i + first == 0 ? "All" : String(i + first),
+                    i + first,
+                    i + first == selected,
+                    i + first == selected
+                )
+        );
+    }
+
     static updateMaxLevelSelection(maxLevel, selected) {
-        const select = document.getElementById("maxLevel");
-        select.options.length = 0;
-        for (let i = 0; i <= maxLevel; ++i) {
-            select.options[i] = new Option(`${i == 0 ? "All" : i}`, i, i == 5, i == selected);
-        }
+        $("#maxLevel")
+            .empty()
+            .append(...AncestorLinesExplorer.generateLevelOptions(0, maxLevel, selected));
+        // console.log(
+        //     "BEFORE:",
+        //     "requested maxLevel =",
+        //     maxLevel,
+        //     "requested selected =",
+        //     selected,
+        //     "actual value =",
+        //     select.value
+        // );
+
+        // const options = Array.from(
+        //     { length: maxLevel + 1 },
+        //     (_, i) => new Option(i === 0 ? "All" : String(i), String(i), i === selected, i === selected)
+        // );
+
+        // console.log(
+        //     "AFTER:",
+        //     "value =",
+        //     select.value,
+        //     "selectedIndex =",
+        //     select.selectedIndex,
+        //     "options =",
+        //     select.options.length
+        // );
     }
 
     static setGetPeopleButtonText(n) {
@@ -832,7 +877,7 @@ export class AncestorLinesExplorer {
             AncestorTree.replaceWith(people);
             Utils.hideShakingTree();
             $(wtViewRegistry.WT_ID_TEXT).val(AncestorTree.root.getWtId());
-            const maxGen = Math.min(AncestorTree.maxGeneration, 20);
+            const maxGen = Math.min(AncestorTree.maxGeneration, AncestorLinesExplorer.MAX_GENERATIONS);
             $("#generation").val(maxGen);
             AncestorLinesExplorer.setGetPeopleButtonText(maxGen);
             AncestorLinesExplorer.findPathsAndDrawTree(event);
@@ -894,6 +939,12 @@ export class AncestorLinesExplorer {
             $("#birthScale").prop("checked", opt.birthScale);
             $("#privatise").prop("checked", opt.privatise);
             $("#anonLiving").prop("checked", opt.anonLiving);
+            AncestorLinesExplorer.updateMaxLevelSelection(opt.maxLevel, AncestorLinesExplorer.DEFAULT_MAX_GENERATIONS);
+        } else {
+            AncestorLinesExplorer.updateMaxLevelSelection(
+                AncestorLinesExplorer.MAX_GENERATIONS,
+                AncestorLinesExplorer.DEFAULT_MAX_GENERATIONS
+            );
         }
     }
 
