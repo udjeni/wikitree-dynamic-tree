@@ -219,7 +219,7 @@ export class AncestorTree {
             }
         }
         console.log(
-            `ancestors with profiles=${AncestorTree.profiledPositionCount}, nr duplicates=${AncestorTree.duplicates.size}`
+            `Tree size = ${AncestorTree.#people.size}, ancestors with profiles=${AncestorTree.profiledPositionCount}, nr duplicates=${AncestorTree.duplicates.size}`
         );
         console.log(`generation counts: ${AncestorTree.genCounts}`, AncestorTree.genCounts);
     }

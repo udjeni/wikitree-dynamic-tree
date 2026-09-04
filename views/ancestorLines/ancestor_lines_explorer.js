@@ -725,9 +725,8 @@ export class AncestorLinesExplorer {
         const nrUniqueProfiles = AncestorTree.uniqueProfileCount - 1;
         const nrProfiledPositions = AncestorTree.profiledPositionCount - 1;
         const [nrDuplicates, nrPosOccupiedByDupes] = AncestorTree.nrDuplicatesUpToGen(gen);
-        const nrProfiled = nrUniqueProfiles - nrDuplicates + nrPosOccupiedByDupes;
         console.log(
-            `maxNrPeople: ${maxNrPeople}, nrUniqueProfiles: ${nrUniqueProfiles}, nrDuplicates: ${nrDuplicates}, nrPosOccupiedByDupes: ${nrPosOccupiedByDupes}, nrProfiledPositions: ${nrProfiledPositions} nrProfiled: ${nrProfiled}`
+            `maxNrPeople: ${maxNrPeople}, nrUniqueProfiles: ${nrUniqueProfiles}, nrDuplicates: ${nrDuplicates}, nrPosOccupiedByDupes: ${nrPosOccupiedByDupes}, nrProfiledPositions: ${nrProfiledPositions}`
         );
 
         const commonReport = `Out of ${maxNrPeople.toLocaleString()} possible direct ancestors in ${gen} generations, ${nrProfiledPositions.toLocaleString()} (${(
